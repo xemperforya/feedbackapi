@@ -19,3 +19,13 @@ pip install "djangorestframework>=3.12.4,<3.13.0"
 ### Setup your mysql
 - create a new database with [dbname]
 - update in your _feedbackapi/settings.py_
+
+![](/images/settings.py.png)
+
+## APIS with urls(ss from postman)
+![](/images/get_all(sorted_datetime))
+![](/images/settings.py.png)
+![](/images/settings.py.png)
+![](/images/settings.py.png)
+![](/images/settings.py.png)
+![](/images/settings.py.png)
