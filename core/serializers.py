@@ -1,6 +1,7 @@
-from rest_framework import serializers
+from rest_framework import fields, serializers
 from core.models import feedback
 from core.models import comments
+from rest_framework.pagination import PageNumberPagination as pg
 
 class feedbackserializer(serializers.ModelSerializer):
 

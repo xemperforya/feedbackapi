@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'feedbackapi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'testdb',
+        'NAME': 'db01',
         'USER': 'root',
         'PASSWORD': 'Shantanu@246',
         'HOST': '127.0.0.1',

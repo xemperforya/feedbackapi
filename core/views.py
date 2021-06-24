@@ -1,7 +1,9 @@
+from django.http import response
 from django.shortcuts import render
 
 # Create your views here.
 from django.http.response import JsonResponse
+from django.core.paginator import Paginator
 from rest_framework.parsers import JSONParser 
 from rest_framework import status
  
@@ -9,9 +11,12 @@ from core.models import feedback,comments
 from core.serializers import feedbackserializer,commentserializer
 from rest_framework.decorators import api_view
 from rest_framework import permissions
+from rest_framework.pagination import PageNumberPagination as pg
+
+from core.producer import pushmsg
+#pushmsg( feedback,feedback.id)
 
 permission_classes = [permissions.AllowAny]
-
 @api_view(['GET', 'POST', 'DELETE'])
 def core_list(request):
 
@@ -19,21 +24,28 @@ def core_list(request):
         feedbacks = feedback.objects.order_by('-feed_time')
         feed = request.GET.get('feed', None)
         tag = request.GET.get('tag',None)
+        size = request.GET.get('size',10)
+        page_number = request.GET.get('page',1)
 
         if feed is not None:
             feedbacks = feedbacks.filter(feed__icontains=feed)
             if tag is not None:
                 feedbacks = feedbacks.filter(tag=tag)
         
-        feedbacks_serializer = feedbackserializer(feedbacks, many=True)
-        return JsonResponse(feedbacks_serializer.data, safe=False)
+        #feedbacks_serializer = feedbackserializer(feedbacks, many=True)
+
+        paginator = Paginator(feedbacks, size)
+        page_obj = paginator.get_page(page_number)
+        feedbacks_serializer = [feedbackserializer(feed).data for feed in page_obj]
+        return JsonResponse(feedbacks_serializer,safe=False)
 
     elif request.method == 'POST':
         feedback_data = JSONParser().parse(request)
         feedback_serializer = feedbackserializer(data=feedback_data)
         if feedback_serializer.is_valid():
             feedback_serializer.save()
-            return JsonResponse(feedback_serializer.data, status=status.HTTP_201_CREATED) 
+            pushmsg(feedback_serializer.data['feed'],feedback_serializer.data['id'])
+            return JsonResponse(feedback_serializer.data, status=status.HTTP_201_CREATED)
         return JsonResponse(feedback_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
@@ -50,16 +62,17 @@ def core_detail(request, pk):
     if request.method == 'GET': 
         feedback_serializer = feedbackserializer(feedbacks)
         return JsonResponse(feedback_serializer.data)
-    elif request.method == 'PUT': 
+    elif request.method == 'PUT':
         feed_data = JSONParser().parse(request) 
         feedback_serializer = feedbackserializer(feedbacks, data=feed_data) 
-        if feedback_serializer.is_valid(): 
-            feedback_serializer.save() 
+        if feedback_serializer.is_valid():
+            feedback_serializer.save()
+            pushmsg(feedback_serializer.data['feed'],feedback_serializer.data['id'])
             return JsonResponse(feedback_serializer.data) 
         return JsonResponse(feedback_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
-        feedbacks.delete() 
-        return JsonResponse({'message': 'feedback was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT) 
+        feedbacks.delete()
+        return JsonResponse({'message': 'feedback was deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
     
 
 

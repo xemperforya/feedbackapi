@@ -6,7 +6,7 @@ from django.utils.functional import empty
 class feedback(models.Model):
     email = models.EmailField(unique=True)
     feed = models.TextField(default="")
-    tag = models.BooleanField(default=True)
+    tag = models.TextField(default="Happy")
     feed_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
